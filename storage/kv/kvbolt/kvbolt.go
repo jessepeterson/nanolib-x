@@ -1,3 +1,4 @@
+// Package kvbolt is a NanoLIB kv store that uses bbolt for the backend storage.
 package kvbolt
 
 import (
