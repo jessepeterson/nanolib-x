@@ -1,9 +1,8 @@
 module github.com/jessepeterson/nanolib-x
 
 go 1.21.3
-
 require (
-	github.com/micromdm/nanolib v0.2.0
+	github.com/micromdm/nanolib v0.3.0
 	go.etcd.io/bbolt v1.3.10
 )
 
