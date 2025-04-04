@@ -7,16 +7,19 @@ import (
 )
 
 // BeginCRUDBucketTxn begins a new transaction.
+// Note started transactions will block a bolt DB close.
 func (b *KVBolt) BeginCRUDBucketTxn(context.Context) (kv.CRUDBucketTxnCompleter, error) {
 	return new(b.db, b.bucketName, true, b.writable)
 }
 
 // BeginKeysPrefixTraversingBucketTxn begins a new transaction.
+// Note started transactions will block a bolt DB close.
 func (b *KVBolt) BeginKeysPrefixTraversingBucketTxn(context.Context) (kv.KeysPrefixTraversingBucketTxnCompleter, error) {
 	return new(b.db, b.bucketName, true, b.writable)
 }
 
 // BeginBucketTxn begins a new transaction.
+// Note started transactions will block a bolt DB close.
 func (b *KVBolt) BeginBucketTxn(context.Context) (kv.BucketTxnCompleter, error) {
 	return new(b.db, b.bucketName, true, b.writable)
 }
