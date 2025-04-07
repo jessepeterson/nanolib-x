@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// Mux represents an HTTP muxer that can handle HTTP methods.
+// Mux represents an HTTP muxer that cannot handle HTTP methods.
 type Mux interface {
 	Handle(pattern string, handler http.Handler)
 	HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request))
@@ -13,6 +13,7 @@ type Mux interface {
 }
 
 // MWMethodMux applies middleware when registering HTTP handlers.
+// It uses a [MethodMux] to handle per-method dispatching.
 type MWMethodMux struct {
 	mux Mux
 
@@ -35,8 +36,8 @@ func (m *MWMethodMux) Use(middlewares ...func(http.Handler) http.Handler) {
 
 // Handle layers middlewares around handler and registers them with pattern.
 func (m *MWMethodMux) Handle(pattern string, handler http.Handler, methods ...string) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
 	// assemble middleware in descending order
 	for i := len(m.middlewares) - 1; i >= 0; i-- {
@@ -44,13 +45,13 @@ func (m *MWMethodMux) Handle(pattern string, handler http.Handler, methods ...st
 	}
 
 	if len(methods) < 1 {
-		// no methods, assign the whole
+		// no methods, assign the entire handler on pattern
 		m.mux.Handle(pattern, handler)
 		return
 	}
 
 	if m.methodHandlers == nil {
-		panic("nil method handlers map")
+		m.methodHandlers = make(map[string]*MethodMux)
 	}
 
 	if m.methodHandlers[pattern] == nil {
