@@ -20,7 +20,7 @@ func hwHandler() http.HandlerFunc {
 func TestMWMethodMux(t *testing.T) {
 	mux := NewMWMethodMux(http.NewServeMux())
 
-	mux.Handle("/foo", hwHandler(), "GET")
+	mux.Handle("GET /foo", hwHandler())
 	mux.Handle("/bar", hwHandler())
 
 	tests := []struct {
@@ -54,7 +54,7 @@ func TestMWMethodMux(t *testing.T) {
 
 			if test.body != "" {
 				if !bytes.Contains(w.Body.Bytes(), []byte(test.body)) {
-					t.Errorf("expected body to contain '%s', got '%s'", test.body, w.Body.String())
+					t.Errorf("expected body to contain '%s', got '%s'", test.body, strings.TrimSpace(w.Body.String()))
 				}
 			}
 		})
@@ -62,7 +62,7 @@ func TestMWMethodMux(t *testing.T) {
 	}
 
 	t.Run("already-registered-main", func(t *testing.T) {
-		var panicString string
+		panicString := "[no panic string]"
 
 		func() {
 			defer func() {
@@ -80,7 +80,7 @@ func TestMWMethodMux(t *testing.T) {
 	})
 
 	t.Run("already-registered-method", func(t *testing.T) {
-		var panicString string
+		panicString := "[no panic string]"
 
 		func() {
 			defer func() {
@@ -89,7 +89,7 @@ func TestMWMethodMux(t *testing.T) {
 				}
 			}()
 
-			mux.Handle("/foo", hwHandler(), "GET")
+			mux.Handle("GET /foo", hwHandler())
 		}()
 
 		if !strings.Contains(panicString, "multiple registrations") {

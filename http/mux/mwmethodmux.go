@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -35,7 +36,7 @@ func (m *MWMethodMux) Use(middlewares ...func(http.Handler) http.Handler) {
 }
 
 // Handle layers middlewares around handler and registers them with pattern.
-func (m *MWMethodMux) Handle(pattern string, handler http.Handler, methods ...string) {
+func (m *MWMethodMux) Handle(pattern string, handler http.Handler) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -44,11 +45,14 @@ func (m *MWMethodMux) Handle(pattern string, handler http.Handler, methods ...st
 		handler = m.middlewares[i](handler)
 	}
 
-	if len(methods) < 1 {
-		// no methods, assign the entire handler on pattern
+	parts := strings.SplitN(pattern, " ", 2)
+	if len(parts) < 2 {
+		// no HTTP method, assign the entire handler with pattern
 		m.mux.Handle(pattern, handler)
 		return
 	}
+
+	pattern = parts[1]
 
 	if m.methodHandlers == nil {
 		m.methodHandlers = make(map[string]*MethodMux)
@@ -59,14 +63,12 @@ func (m *MWMethodMux) Handle(pattern string, handler http.Handler, methods ...st
 		m.mux.Handle(pattern, m.methodHandlers[pattern])
 	}
 
-	for _, method := range methods {
-		m.methodHandlers[pattern].Handle(method, handler)
-	}
+	m.methodHandlers[pattern].Handle(parts[0], handler)
 }
 
 // HandleFunc layers middlewares around handler and registers them with pattern.
-func (m *MWMethodMux) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request), methods ...string) {
-	m.Handle(pattern, http.HandlerFunc(handler), methods...)
+func (m *MWMethodMux) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+	m.Handle(pattern, http.HandlerFunc(handler))
 }
 
 // ServeHTTP is a convenience wrapper to use m itself as an HTTP handler.
