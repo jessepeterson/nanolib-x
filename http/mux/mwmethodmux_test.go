@@ -67,14 +67,21 @@ func TestMWMethodMux(t *testing.T) {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					panicString, _ = r.(string)
+					var ok bool
+					panicString, ok = r.(string)
+					if !ok {
+						if err, ok := r.(error); ok {
+							// Go 1.22+ now returns an error
+							panicString = err.Error()
+						}
+					}
 				}
 			}()
 
 			mux.Handle("/foo", hwHandler())
 		}()
 
-		if !strings.Contains(panicString, "multiple registrations") {
+		if !strings.Contains(panicString, "multiple registrations") && !strings.Contains(panicString, "conflicts with pattern") {
 			t.Errorf("unexpected panic string: %v", panicString)
 		}
 	})
@@ -85,14 +92,21 @@ func TestMWMethodMux(t *testing.T) {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					panicString, _ = r.(string)
+					var ok bool
+					panicString, ok = r.(string)
+					if !ok {
+						if err, ok := r.(error); ok {
+							// Go 1.22+ now returns an error
+							panicString = err.Error()
+						}
+					}
 				}
 			}()
 
 			mux.Handle("GET /foo", hwHandler())
 		}()
 
-		if !strings.Contains(panicString, "multiple registrations") {
+		if !strings.Contains(panicString, "multiple registrations") && !strings.Contains(panicString, "conflicts with pattern") {
 			t.Errorf("unexpected panic string: %v", panicString)
 		}
 	})
