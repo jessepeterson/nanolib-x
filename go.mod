@@ -3,7 +3,7 @@ module github.com/jessepeterson/nanolib-x
 go 1.23
 
 require (
-	github.com/micromdm/nanolib v0.5.0
+	github.com/micromdm/nanolib v0.5.1
 	go.etcd.io/bbolt v1.4.3
 )
 
